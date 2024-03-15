@@ -1,11 +1,13 @@
 // App.js
 import React from "react";
-import { BrowserRouter, Route, Link, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 import LoginPage from "./components/LoginPage/LoginPage";
 import ForgotPasswordPage from "./components/ForgotPasswordPage/ForgotPasswordPage";
 import NewPasswordPage from "./components/NewPasswordPage/NewPasswordPage";
 import HomePage from "./components/HomePage/HomePage";
 import NoPage from "./components/NoPage/NoPage";
+import "./App.css";
+import "./fonts/BasisGrotesquePro-Regular.woff2";
 
 const App = () => {
   return (
