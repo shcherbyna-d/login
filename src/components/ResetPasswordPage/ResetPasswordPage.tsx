@@ -1,4 +1,3 @@
-import React from "react";
 import ResetPasswordForm from "../ResetPasswordForm/ResetPasswordForm";
 import LoginLayout from "../LoginLayout/LoginLayout";
 

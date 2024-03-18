@@ -1,4 +1,4 @@
-import React, { InputHTMLAttributes, useState } from "react";
+import React, { InputHTMLAttributes, useState, memo } from "react";
 import styled from "styled-components";
 import Eye from "../../icons/Eye";
 
@@ -17,11 +17,15 @@ const InputBlueBorder = styled.div`
   border: 1.2px solid transparent;
   transition: border-color 0.2s;
 
-  &:hover {
+  &.error {
+    border-color: #ff000047;
+  }
+
+  &:hover:not(.error) {
     border-color: #316fea87;
   }
 
-  &:focus-within {
+  &:focus-within:not(.error) {
     border-color: #316fea87;
 
     .input {
@@ -39,8 +43,12 @@ const Input = styled.input`
   font-size: 15px;
   font-weight: 400;
   line-height: 20px;
-  outline: none;
+  outline: transparent;
   transition: border-color 0.2s;
+
+  &.error {
+    border-color: #ff0000af;
+  }
 
   &::placeholder {
     color: #a1abb5;
@@ -56,7 +64,7 @@ const ErrorText = styled.span`
 
 const IconWrapper = styled.button`
   background-color: transparent;
-  outline: none;
+  outline: transparent;
   border: none;
   position: absolute;
   height: 100%;
@@ -77,32 +85,36 @@ const IconWrapper = styled.button`
 
 interface PasswordInputProps extends InputHTMLAttributes<HTMLInputElement> {
   errorText?: string;
+  ref?: React.Ref<HTMLInputElement>;
 }
 
-const PasswordInput = (props: PasswordInputProps) => {
-  const { errorText, ...rest } = props;
+const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(
+  (props, ref) => {
+    const { errorText, ...rest } = props;
 
-  const [passwordShown, setPasswordShown] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
 
-  const toogleVisability = () => {
-    setPasswordShown(!passwordShown);
-  };
+    const toogleVisability = () => {
+      setShowPassword(!showPassword);
+    };
 
-  return (
-    <TextInputContainer>
-      <InputBlueBorder>
-        <Input
-          className="input"
-          type={passwordShown ? "text" : "password"}
-          {...rest}
-        />
-        <IconWrapper onClick={toogleVisability}>
-          <Eye />
-        </IconWrapper>
-      </InputBlueBorder>
-      {errorText && <ErrorText>{errorText}</ErrorText>}
-    </TextInputContainer>
-  );
-};
+    return (
+      <TextInputContainer>
+        <InputBlueBorder className={`${Boolean(errorText) ? "error" : ""}`}>
+          <Input
+            className={`input ${Boolean(errorText) ? "error" : ""}`}
+            type={showPassword ? "text" : "password"}
+            ref={ref}
+            {...rest}
+          />
+          <IconWrapper type="button" onClick={toogleVisability} tabIndex={-1}>
+            <Eye />
+          </IconWrapper>
+        </InputBlueBorder>
+        {errorText && <ErrorText>{errorText}</ErrorText>}
+      </TextInputContainer>
+    );
+  }
+);
 
-export default PasswordInput;
+export default memo(PasswordInput);

@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useEffect, useRef, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import Logo from "../../icons/Logo";
 import Google from "../../icons/Google";
@@ -7,6 +7,19 @@ import GitHub from "../../icons/GitHub";
 import TextInput from "../TextInput/TextInput";
 import PasswordInput from "../PasswordInput/PasswordInput";
 import { BlueButtonStyled } from "../BlueButton/BlueButton";
+import { ApiError, logIn } from "../../api/auth";
+import {
+  getAccessTokenFromSessionStorage,
+  saveAccessTokenToSessionStorage,
+} from "../../utils/storage";
+import { isValidEmail } from "../../utils/validation";
+import LoadingOverlay from "../LoadingOverlay/LoadingOverlay";
+
+const OverlayContainer = styled.div`
+  width: 100%;
+  height: 100%;
+  position: relative;
+`;
 
 const Form = styled.form`
   width: 100%;
@@ -124,89 +137,147 @@ const LinkStyledSignUp = styled(LinkStyled)`
 `;
 
 const LoginForm = () => {
+  const navigate = useNavigate();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
-  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (event: React.SyntheticEvent) => {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    // Set focus to the input field when the component mounts
+    inputRef.current?.focus();
+  }, []);
+
+  const handleSubmit = async (event: React.SyntheticEvent) => {
     event.preventDefault();
+    setLoading(true);
+
+    setEmailError("");
+    setPasswordError("");
+
+    try {
+      const response = await logIn({ email, password });
+      saveAccessTokenToSessionStorage(response.access_token);
+
+      navigate("/home");
+    } catch (error) {
+      if (error instanceof ApiError) {
+        if (Array.isArray(error.details)) {
+          error.details.forEach((fieldError) => {
+            if (fieldError.field_name === "email") {
+              setEmailError(fieldError.error);
+            } else if (fieldError.field_name === "password") {
+              setPasswordError(fieldError.error);
+            }
+          });
+        } else if (typeof error.details === "string") {
+          setEmailError(error.details);
+        }
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleEmailChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(event.target.value);
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const isValidEmail =
-      emailRegex.test(event.target.value) || !event.target.value;
-    if (!isValidEmail) {
-      setEmailError("Invalid email format");
-    } else {
-      setEmailError("");
-    }
-
+    //for displaying password field after first email input change
     if (showPassword === false) {
       setShowPassword(true);
     }
+
+    const isEmailCorrect =
+      isValidEmail(event.target.value) || !event.target.value;
+
+    if (isEmailCorrect) {
+      setEmailError("");
+    } else {
+      setEmailError("Invalid email format");
+    }
   };
 
+  const handlePasswordChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setPassword(event.target.value);
+  };
+
+  useEffect(() => {
+    const accessToken = getAccessTokenFromSessionStorage();
+
+    if (accessToken) {
+      navigate("/home");
+    }
+  }, [navigate]);
+
   return (
-    <Form onSubmit={handleSubmit} noValidate>
-      <LogoWrapper>
-        <Logo />
-      </LogoWrapper>
-      <Title>Log in to your account</Title>
-      <OtherAuth>
-        <AuthButton type="button">
-          <Google />
-          <span>Google</span>
-        </AuthButton>
-        <AuthButton type="button">
-          <GitHub />
-          <span>Github</span>
-        </AuthButton>
-      </OtherAuth>
-      <DividerWrapper>
-        <Line />
-        <span>OR</span>
-        <Line />
-      </DividerWrapper>
-      <InputWrapper>
-        <TextInput
-          value={email}
-          onChange={handleEmailChange}
-          type="email"
-          placeholder="Enter your email"
-          errorText={emailError}
-        />
-      </InputWrapper>
-      {showPassword && (
-        <InputWrapper className="last">
-          <PasswordInput
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            placeholder="Password"
-            errorText={passwordError}
+    <OverlayContainer>
+      <Form onSubmit={handleSubmit} noValidate>
+        <LogoWrapper>
+          <Logo />
+        </LogoWrapper>
+        <Title>Log in to your account</Title>
+        <OtherAuth>
+          <AuthButton type="button">
+            <Google />
+            <span>Google</span>
+          </AuthButton>
+          <AuthButton type="button">
+            <GitHub />
+            <span>Github</span>
+          </AuthButton>
+        </OtherAuth>
+        <DividerWrapper>
+          <Line />
+          <span>OR</span>
+          <Line />
+        </DividerWrapper>
+        <InputWrapper>
+          <TextInput
+            value={email}
+            onChange={handleEmailChange}
+            type="email"
+            placeholder="Enter your email"
+            errorText={emailError}
+            ref={inputRef}
           />
         </InputWrapper>
-      )}
-      {showForgotPassword && (
-        <LinkStyled>
-          <Link to="/forgot-password">Forgot your password?</Link>
-        </LinkStyled>
-      )}
-      <SubmitButtonWrapper>
-        <BlueButtonStyled disabled={!email || !password} onClick={handleSubmit}>
-          Log in to Qencode
-        </BlueButtonStyled>
-      </SubmitButtonWrapper>
-      <LinkStyledSignUp>
-        <span>Is your company new to Qencode? </span>
-        <Link to="/sign-up">Sign up</Link>
-      </LinkStyledSignUp>
-    </Form>
+        {showPassword && (
+          <>
+            <InputWrapper className="last">
+              <PasswordInput
+                value={password}
+                onChange={handlePasswordChange}
+                placeholder="Password"
+                errorText={passwordError}
+              />
+            </InputWrapper>
+            <LinkStyled>
+              <Link to="/forgot-password">Forgot your password?</Link>
+            </LinkStyled>
+          </>
+        )}
+        <SubmitButtonWrapper>
+          <BlueButtonStyled
+            type="submit"
+            disabled={!email || !password}
+            onClick={handleSubmit}
+          >
+            Log in to Qencode
+          </BlueButtonStyled>
+        </SubmitButtonWrapper>
+        <LinkStyledSignUp>
+          <span>Is your company new to Qencode? </span>
+          <Link to="/sign-up">Sign up</Link>
+        </LinkStyledSignUp>
+      </Form>
+
+      <LoadingOverlay isLoading={loading} />
+    </OverlayContainer>
   );
 };
 

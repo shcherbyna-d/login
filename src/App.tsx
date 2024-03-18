@@ -1,5 +1,3 @@
-// App.js
-import React from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import LoginPage from "./components/LoginPage/LoginPage";
 import ForgotPasswordPage from "./components/ForgotPasswordPage/ForgotPasswordPage";
@@ -16,6 +14,7 @@ const App = () => {
     <BrowserRouter>
       <Routes>
         <Route path="/" Component={HomePage} />
+        <Route path="/home" Component={HomePage} />
         <Route path="/login" Component={LoginPage} />
         <Route path="/forgot-password" Component={ForgotPasswordPage} />
         <Route path="/reset-password" Component={ResetPasswordPage} />

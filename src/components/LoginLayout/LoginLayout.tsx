@@ -7,6 +7,10 @@ const LayoutContainer = styled.div`
   align-items: center;
   padding-top: 180px;
   padding-bottom: 50px;
+
+  @media (max-width: 480px) {
+    padding-top: 100px;
+  }
 `;
 
 const LoginFormWrapper = styled.div`

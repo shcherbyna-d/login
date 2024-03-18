@@ -1,4 +1,4 @@
-import React, { InputHTMLAttributes } from "react";
+import React, { InputHTMLAttributes, memo } from "react";
 import styled from "styled-components";
 
 const TextInputContainer = styled.div`
@@ -16,11 +16,15 @@ const InputBlueBorder = styled.div`
   border: 1.2px solid transparent;
   transition: border-color 0.2s;
 
-  &:hover {
+  &.error {
+    border-color: #ff000047;
+  }
+
+  &:hover:not(.error) {
     border-color: #316fea87;
   }
 
-  &:focus-within {
+  &:focus-within:not(.error) {
     border-color: #316fea87;
 
     .input {
@@ -38,8 +42,12 @@ const Input = styled.input`
   font-size: 15px;
   font-weight: 400;
   line-height: 20px;
-  outline: none;
+  outline: transparent;
   transition: border-color 0.2s;
+
+  &.error {
+    border-color: #ff0000af;
+  }
 
   &::placeholder {
     color: #a1abb5;
@@ -55,19 +63,26 @@ const ErrorText = styled.span`
 
 interface TextInputProps extends InputHTMLAttributes<HTMLInputElement> {
   errorText?: string;
+  ref?: React.Ref<HTMLInputElement>;
 }
 
-const TextInput = (props: TextInputProps) => {
-  const { errorText, ...rest } = props;
+const TextInput = React.forwardRef<HTMLInputElement, TextInputProps>(
+  (props, ref) => {
+    const { errorText, ...rest } = props;
 
-  return (
-    <TextInputContainer>
-      <InputBlueBorder>
-        <Input className="input" {...rest} />
-      </InputBlueBorder>
-      {errorText && <ErrorText>{errorText}</ErrorText>}
-    </TextInputContainer>
-  );
-};
+    return (
+      <TextInputContainer>
+        <InputBlueBorder className={`${Boolean(errorText) ? "error" : ""}`}>
+          <Input
+            className={`input ${Boolean(errorText) ? "error" : ""}`}
+            ref={ref}
+            {...rest}
+          />
+        </InputBlueBorder>
+        {errorText && <ErrorText>{errorText}</ErrorText>}
+      </TextInputContainer>
+    );
+  }
+);
 
-export default TextInput;
+export default memo(TextInput);
