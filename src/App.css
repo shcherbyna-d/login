@@ -1,6 +1,7 @@
 * {
   margin: 0;
   padding: 0;
+  box-sizing: border-box;
 }
 
 body {
@@ -11,4 +12,14 @@ body {
   font-family: "BasisGrotesquePro-Regular";
   src: local("BasisGrotesquePro-Regular"),
     url(./fonts/BasisGrotesquePro-Regular.woff2) format("woff2");
+}
+@font-face {
+  font-family: "BasisGrotesquePro-Bold";
+  src: local("BasisGrotesquePro-Bold"),
+    url(./fonts/BasisGrotesquePro-Bold.woff2) format("woff2");
+}
+@font-face {
+  font-family: "BasisGrotesquePro-Medium";
+  src: local("BasisGrotesquePro-Medium"),
+    url(./fonts/BasisGrotesquePro-Medium.woff2) format("woff2");
 }
