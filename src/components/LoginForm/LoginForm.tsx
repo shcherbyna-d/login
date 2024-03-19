@@ -140,8 +140,10 @@ const LoginForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [emailError, setEmailError] = useState("");
-  const [passwordError, setPasswordError] = useState("");
+  const [emailApiError, setEmailApiError] = useState("");
+  const [emailFormatError, setEmailFormatError] = useState("");
+  const [passwordApiError, setPasswordApiError] = useState("");
+  const [passwordLengthError, setPasswordLengthError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
@@ -155,8 +157,8 @@ const LoginForm = () => {
     event.preventDefault();
     setLoading(true);
 
-    setEmailError("");
-    setPasswordError("");
+    setEmailApiError("");
+    setPasswordApiError("");
 
     try {
       const response = await logIn({ email, password });
@@ -168,13 +170,16 @@ const LoginForm = () => {
         if (Array.isArray(error.details)) {
           error.details.forEach((fieldError) => {
             if (fieldError.field_name === "email") {
-              setEmailError(fieldError.error);
+              setEmailFormatError("");
+              setEmailApiError(fieldError.error);
             } else if (fieldError.field_name === "password") {
-              setPasswordError(fieldError.error);
+              setPasswordLengthError("");
+              setPasswordApiError(fieldError.error);
             }
           });
         } else if (typeof error.details === "string") {
-          setEmailError(error.details);
+          setEmailFormatError("");
+          setEmailApiError(error.details);
         }
       }
     } finally {
@@ -194,14 +199,23 @@ const LoginForm = () => {
       isValidEmail(event.target.value) || !event.target.value;
 
     if (isEmailCorrect) {
-      setEmailError("");
+      setEmailFormatError("");
     } else {
-      setEmailError("Invalid email format");
+      setEmailApiError("");
+      setEmailFormatError("Invalid email format");
     }
   };
 
   const handlePasswordChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setPassword(event.target.value);
+
+    //all validations should be consistent with the back-end validation
+    if (event.target.value && event.target.value.length < 8) {
+      setPasswordApiError("");
+      setPasswordLengthError("Password should be at least 8 symbols");
+    } else {
+      setPasswordLengthError("");
+    }
   };
 
   useEffect(() => {
@@ -240,7 +254,7 @@ const LoginForm = () => {
             onChange={handleEmailChange}
             type="email"
             placeholder="Enter your email"
-            errorText={emailError}
+            errorText={emailApiError || emailFormatError}
             ref={inputRef}
           />
         </InputWrapper>
@@ -251,7 +265,7 @@ const LoginForm = () => {
                 value={password}
                 onChange={handlePasswordChange}
                 placeholder="Password"
-                errorText={passwordError}
+                errorText={passwordApiError || passwordLengthError}
               />
             </InputWrapper>
             <LinkStyled>
@@ -262,7 +276,12 @@ const LoginForm = () => {
         <SubmitButtonWrapper>
           <BlueButtonStyled
             type="submit"
-            disabled={!email || !password}
+            disabled={
+              !email ||
+              !password ||
+              Boolean(emailFormatError) ||
+              Boolean(passwordLengthError)
+            }
             onClick={handleSubmit}
           >
             Log in to Qencode

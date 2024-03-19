@@ -63,7 +63,8 @@ const WhiteButton = styled(BlueButtonStyled)`
 
 const ForgotPasswordForm = () => {
   const [email, setEmail] = useState("");
-  const [emailError, setEmailError] = useState("");
+  const [emailApiError, setEmailApiError] = useState("");
+  const [emailFormatError, setEmailFormatError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
@@ -75,7 +76,7 @@ const ForgotPasswordForm = () => {
 
   const handleSubmit = async (event: React.SyntheticEvent) => {
     event.preventDefault();
-    setLoading(true)
+    setLoading(true);
 
     try {
       await resetPassword(email);
@@ -87,15 +88,17 @@ const ForgotPasswordForm = () => {
         if (Array.isArray(error.details)) {
           error.details.forEach((fieldError) => {
             if (fieldError.field_name === "email") {
-              setEmailError(fieldError.error);
+              setEmailFormatError("");
+              setEmailApiError(fieldError.error);
             }
           });
         } else if (typeof error.details === "string") {
-          setEmailError(error.details);
+          setEmailFormatError("");
+          setEmailApiError(error.details);
         }
       }
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   };
 
@@ -106,9 +109,10 @@ const ForgotPasswordForm = () => {
       isValidEmail(event.target.value) || !event.target.value;
 
     if (isEmailCorrect) {
-      setEmailError("");
+      setEmailFormatError("");
     } else {
-      setEmailError("Invalid email format");
+      setEmailFormatError("Invalid email format");
+      setEmailApiError("");
     }
   };
 
@@ -125,13 +129,13 @@ const ForgotPasswordForm = () => {
             onChange={handleEmailChange}
             type="email"
             placeholder="Enter your email"
-            errorText={emailError}
+            errorText={emailApiError || emailFormatError}
             ref={inputRef}
           />
         </InputWrapper>
         <BlueButtonStyled
           type="submit"
-          disabled={!email}
+          disabled={!email || Boolean(emailFormatError)}
           onClick={handleSubmit}
         >
           Send

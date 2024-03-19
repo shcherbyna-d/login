@@ -60,8 +60,10 @@ const ResetPasswordForm = () => {
   const [secret, setSecret] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [passwordError, setPasswordError] = useState("");
-  const [confirmPasswordError, setConfirmPasswordError] = useState("");
+  const [passwordApiError, setPasswordApiError] = useState("");
+  const [passwordLengthError, setPasswordLengthError] = useState("");
+  const [confirmPasswordLengthError, setConfirmPasswordLengthError] =
+    useState("");
   const [loading, setLoading] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
@@ -94,11 +96,13 @@ const ResetPasswordForm = () => {
         if (Array.isArray(error.details)) {
           error.details.forEach((fieldError) => {
             if (fieldError.field_name === "password") {
-              setPasswordError(fieldError.error);
+              setPasswordLengthError("");
+              setPasswordApiError(fieldError.error);
             }
           });
         } else if (typeof error.details === "string") {
-          setPasswordError(error.details);
+          setPasswordLengthError("");
+          setPasswordApiError(error.details);
         }
       }
     } finally {
@@ -107,13 +111,12 @@ const ResetPasswordForm = () => {
   };
 
   const handlePasswordChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    event.preventDefault();
-
     //all validations should be consistent with the back-end validation
     if (event.target.value && event.target.value.length < 8) {
-      setPasswordError("Password should be at least 8 symbols");
+      setPasswordApiError("");
+      setPasswordLengthError("Password should be at least 8 symbols");
     } else {
-      setPasswordError("");
+      setPasswordLengthError("");
     }
 
     setPassword(event.target.value);
@@ -122,12 +125,10 @@ const ResetPasswordForm = () => {
   const handleConfirmPasswordChange = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
-    event.preventDefault();
-
     if (event.target.value && event.target.value !== password) {
-      setConfirmPasswordError("Passwords are not equal");
+      setConfirmPasswordLengthError("Passwords are not equal");
     } else {
-      setConfirmPasswordError("");
+      setConfirmPasswordLengthError("");
     }
 
     setConfirmPassword(event.target.value);
@@ -147,7 +148,7 @@ const ResetPasswordForm = () => {
             value={password}
             onChange={handlePasswordChange}
             placeholder="Password"
-            errorText={passwordError}
+            errorText={passwordApiError || passwordLengthError}
             ref={inputRef}
           />
         </InputWrapper>
@@ -158,12 +159,14 @@ const ResetPasswordForm = () => {
             value={confirmPassword}
             onChange={handleConfirmPasswordChange}
             placeholder="Password"
-            errorText={confirmPasswordError}
+            errorText={confirmPasswordLengthError}
           />
         </InputWrapper>
         <BlueButtonStyled
           disabled={
-            !password || !confirmPassword || confirmPassword !== password
+            !password ||
+            confirmPassword !== password ||
+            Boolean(passwordLengthError)
           }
           onClick={handleSubmit}
         >
