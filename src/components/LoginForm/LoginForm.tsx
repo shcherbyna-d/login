@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import styled from "styled-components";
 import Logo from "../../icons/Logo";
 import Google from "../../icons/Google";
@@ -137,8 +137,6 @@ const LinkStyledSignUp = styled(LinkStyled)`
 `;
 
 const LoginForm = () => {
-  const navigate = useNavigate();
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -164,7 +162,7 @@ const LoginForm = () => {
       const response = await logIn({ email, password });
       saveAccessTokenToSessionStorage(response.access_token);
 
-      navigate("/home");
+      alert("You are authorized successfully");
     } catch (error) {
       if (error instanceof ApiError) {
         if (Array.isArray(error.details)) {
@@ -210,9 +208,9 @@ const LoginForm = () => {
     const accessToken = getAccessTokenFromSessionStorage();
 
     if (accessToken) {
-      navigate("/home");
+      alert("You are already authorized");
     }
-  }, [navigate]);
+  }, []);
 
   return (
     <OverlayContainer>
