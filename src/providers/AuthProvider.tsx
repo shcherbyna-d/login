@@ -63,7 +63,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       .then((token) => {
         setToken(token);
 
-        const origin = location.state?.from?.pathname || "/home";
+        const origin = location.state?.from?.pathname || "/";
         navigate(origin);
       });
   };

@@ -18,7 +18,11 @@ const ProtectedRoute = ({ children }: { children: ReactNode }) => {
     }
   }, [authContextValue, navigate, location]);
 
-  if (!authContextValue || authContextValue.loading) {
+  if (
+    !authContextValue ||
+    authContextValue.loading ||
+    !authContextValue.token
+  ) {
     return null;
   }
 

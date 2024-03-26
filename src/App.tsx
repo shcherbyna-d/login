@@ -22,8 +22,7 @@ const App = () => {
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/sign-up" element={<SignUpPage />} />
           <Route
-            index
-            path="/home"
+            path="/"
             element={
               <ProtectedRoute>
                 <HomePage />
