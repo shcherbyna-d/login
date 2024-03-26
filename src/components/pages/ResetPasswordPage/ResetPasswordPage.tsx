@@ -1,5 +1,5 @@
-import ResetPasswordForm from "../ResetPasswordForm/ResetPasswordForm";
-import LoginLayout from "../LoginLayout/LoginLayout";
+import ResetPasswordForm from "../../ResetPasswordForm/ResetPasswordForm";
+import LoginLayout from "../../LoginLayout/LoginLayout";
 
 const ResetPasswordPage = () => {
   return (

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import Google from "../../icons/Google";
 import GitHub from "../../icons/GitHub";
@@ -9,7 +9,8 @@ import { BlueButtonStyled } from "../BlueButton/BlueButton";
 import { getAccessTokenFromSessionStorage } from "../../utils/storage";
 import { isValidEmail } from "../../utils/validation";
 import LoadingOverlay from "../LoadingOverlay/LoadingOverlay";
-import { useAuth } from "../../providers/AuthProvider";
+import { createUserWithEmailAndPassword, getAuth } from "firebase/auth";
+import { firebaseApp } from "../../firebase";
 
 const OverlayContainer = styled.div`
   width: 100%;
@@ -128,8 +129,9 @@ const LinkStyledSignUp = styled(LinkStyled)`
   }
 `;
 
-const LoginForm = () => {
-  const authContextValue = useAuth();
+const SignUpForm = () => {
+  const auth = getAuth(firebaseApp);
+  const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -151,31 +153,33 @@ const LoginForm = () => {
 
     setEmailApiError("");
 
-    authContextValue
-      ?.onLogin(email, password)
+    createUserWithEmailAndPassword(auth, email, password)
+      .then((userCredential) => {
+        const user = userCredential.user;
+        console.log("user", user);
+        alert("Success! Go to login page.");
+
+        navigate("/login");
+      })
       .catch((error) => {
         // Handle errors here.
         const errorMessage = error.message;
         const errorCode = error.code;
 
         switch (errorCode) {
+          case "auth/weak-password":
+            setEmailApiError("The password is too weak.");
+            break;
+          case "auth/email-already-in-use":
+            setEmailApiError(
+              "This email address is already in use by another account."
+            );
+            break;
+          case "auth/invalid-email":
+            setEmailApiError("This email address is invalid.");
+            break;
           case "auth/operation-not-allowed":
             setEmailApiError("Email/password accounts are not enabled.");
-            break;
-          case "auth/operation-not-supported-in-this-environment":
-            setEmailApiError(
-              "HTTP protocol is not supported. Please use HTTPS."
-            );
-            break;
-          case "auth/popup-blocked":
-            setEmailApiError(
-              "Popup has been blocked by the browser. Please allow popups for this website."
-            );
-            break;
-          case "auth/popup-closed-by-user":
-            setEmailApiError(
-              "Popup has been closed by the user before finalizing the operation. Please try again."
-            );
             break;
           default:
             setEmailApiError(errorMessage);
@@ -223,7 +227,7 @@ const LoginForm = () => {
   return (
     <OverlayContainer>
       <Form onSubmit={handleSubmit} noValidate>
-        <Title>Log in to your account</Title>
+        <Title>Register your account</Title>
         <OtherAuth>
           <AuthButton type="button">
             <Google />
@@ -258,9 +262,6 @@ const LoginForm = () => {
               errorText={passwordLengthError}
             />
           </InputWrapper>
-          <LinkStyled>
-            <Link to="/forgot-password">Forgot your password?</Link>
-          </LinkStyled>
         </>
         <SubmitButtonWrapper>
           <BlueButtonStyled
@@ -273,12 +274,12 @@ const LoginForm = () => {
             }
             onClick={handleSubmit}
           >
-            Log in
+            Submit
           </BlueButtonStyled>
         </SubmitButtonWrapper>
         <LinkStyledSignUp>
-          <span>Is your company new? </span>
-          <Link to="/sign-up">Sign up</Link>
+          <span>Are your already have an account? </span>
+          <Link to="/login">Log in</Link>
         </LinkStyledSignUp>
       </Form>
 
@@ -287,4 +288,4 @@ const LoginForm = () => {
   );
 };
 
-export default LoginForm;
+export default SignUpForm;

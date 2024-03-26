@@ -1,5 +1,5 @@
-import ForgotPasswordForm from "../ForgotPasswordForm/ForgotPasswordForm";
-import LoginLayout from "../LoginLayout/LoginLayout";
+import ForgotPasswordForm from "../../ForgotPasswordForm/ForgotPasswordForm";
+import LoginLayout from "../../LoginLayout/LoginLayout";
 
 const ForgotPasswordPage = () => {
   return (
